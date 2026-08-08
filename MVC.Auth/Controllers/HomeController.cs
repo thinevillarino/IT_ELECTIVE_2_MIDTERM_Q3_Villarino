@@ -1,5 +1,3 @@
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MVC.Auth.Models;
@@ -13,31 +11,43 @@ namespace MVC.Auth.Controllers
     {
         public IActionResult Index()
         {
-            var user = HttpContext.User.Identity;
+            var country = HttpContext.User.Claims
+                .FirstOrDefault(x => x.Type == ClaimTypes.Country)?
+                .Value;
 
-            var country = HttpContext.User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.Country)?.Value;
-
-            if(country == "Philippines")
-            {
-                return RedirectToAction("Privacy");
-            }
+            ViewBag.Country = country;
 
             return View();
         }
 
-        public async Task<IActionResult> Privacy()
+        public IActionResult Privacy()
         {
             var user = HttpContext.User.Identity;
 
-            ViewBag.WelcomeScript = $"Welcome back to the Philippines {user?.Name}!";
-            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            ViewBag.WelcomeScript =
+                $"Welcome back to the Philippines, {user?.Name}!";
+
+            
             return View();
         }
 
-        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+        public IActionResult Portfolio()
+        {
+            return View();
+        }
+
+        [AllowAnonymous]
+        [ResponseCache(
+            Duration = 0,
+            Location = ResponseCacheLocation.None,
+            NoStore = true)]
         public IActionResult Error()
         {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+            return View(new ErrorViewModel
+            {
+                RequestId = Activity.Current?.Id
+                    ?? HttpContext.TraceIdentifier
+            });
         }
     }
 }
